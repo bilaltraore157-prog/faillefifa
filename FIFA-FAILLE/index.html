@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FCTracker - Gestion de Paris FIFA</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="dark-theme">
+
+    <nav class="navbar">
+        <div class="nav-logo">
+            <i class="fa-solid fa-chart-line text-primary"></i> FC<span>Tracker</span>
+        </div>
+        <ul class="nav-links">
+            <li><a href="#" class="nav-link active" data-target="dashboard"><i class="fa-solid fa-gauge"></i> <span>Dashboard</span></a></li>
+            <li><a href="#" class="nav-link" data-target="add-bet"><i class="fa-solid fa-plus"></i> <span>Ajouter</span></a></li>
+            <li><a href="#" class="nav-link" data-target="history"><i class="fa-solid fa-history"></i> <span>Historique</span></a></li>
+            <li><a href="#" class="nav-link" data-target="settings"><i class="fa-solid fa-gear"></i> <span>Configuration</span></a></li>
+        </ul>
+    </nav>
+
+    <main class="container">
+        
+        <section id="dashboard" class="app-section active">
+            <h2 class="section-title">Tableau de bord</h2>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Total Paris</h3>
+                    <p id="stat-total-bets">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Gagnés / Perdus</h3>
+                    <p id="stat-win-loss"><span class="text-success">0</span> / <span class="text-danger">0</span></p>
+                </div>
+                <div class="stat-card">
+                    <h3>Taux Réussite</h3>
+                    <p id="stat-win-rate">0%</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Profit / Perte</h3>
+                    <p id="stat-profit" class="neutral">0 FCFA</p>
+                </div>
+                <div class="stat-card highlight">
+                    <h3>Capital Actuel</h3>
+                    <p id="stat-current-balance">0 FCFA</p>
+                </div>
+                <div class="stat-card highlight">
+                    <h3>ROI</h3>
+                    <p id="stat-roi">0%</p>
+                </div>
+            </div>
+
+            <div class="chart-container card">
+                <h3>Évolution du Capital / Profit</h3>
+                <canvas id="evolutionChart"></canvas>
+            </div>
+
+            <div class="analysis-section">
+                <h3 class="subsection-title">Analyse des Failles par Championnat</h3>
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Championnat</th>
+                                <th>Option</th>
+                                <th>Paris</th>
+                                <th>Réussite</th>
+                                <th>ROI</th>
+                                <th>Statut</th>
+                            </tr>
+                        </thead>
+                        <tbody id="analysis-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="add-bet" class="app-section">
+            <h2 class="section-title" id="form-title">Enregistrer un Pari</h2>
+            <div class="card form-card">
+                <form id="bet-form">
+                    <input type="hidden" id="bet-id">
+                    
+                    <div class="form-group">
+                        <label for="bet-league">Championnat</label>
+                        <select id="bet-league" required></select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="bet-option">Option jouée</label>
+                        <select id="bet-option" required>
+                            <option value="Plus de 1,5 MT">Plus de 1,5 buts à la mi-temps</option>
+                            <option value="Plus de 2,5 Match">Plus de 2,5 buts sur le match</option>
+                        </select>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="bet-stake">Mise (<span class="currency-label">FCFA</span>)</label>
+                            <input type="number" id="bet-stake" min="1" step="any" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="bet-odds">Cote</label>
+                            <input type="number" id="bet-odds" min="1.01" step="0.01" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Résultat</label>
+                        <div class="radio-group">
+                            <label class="radio-label win">
+                                <input type="radio" name="bet-result" value="won" checked>
+                                <span class="custom-radio"><i class="fa-solid fa-check"></i> Gagné</span>
+                            </label>
+                            <label class="radio-label loss">
+                                <input type="radio" name="bet-result" value="lost">
+                                <span class="custom-radio"><i class="fa-solid fa-xmark"></i> Perdu</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary" id="btn-submit-bet">Enregistrer</button>
+                        <button type="button" class="btn btn-secondary hidden" id="btn-cancel-edit">Annuler</button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <section id="history" class="app-section">
+            <h2 class="section-title">Historique des paris</h2>
+            
+            <div class="card filters-card">
+                <div class="filters-grid">
+                    <div class="form-group">
+                        <input type="text" id="filter-search" placeholder="Rechercher...">
+                    </div>
+                    <div class="form-group">
+                        <select id="filter-league">
+                            <option value="">Tous les championnats</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <select id="filter-option">
+                            <option value="">Toutes les options</option>
+                            <option value="Plus de 1,5 MT">Plus de 1,5 MT</option>
+                            <option value="Plus de 2,5 Match">Plus de 2,5 Match</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <input type="date" id="filter-date">
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Championnat</th>
+                            <th>Option</th>
+                            <th>Mise</th>
+                            <th>Cote</th>
+                            <th>Résultat</th>
+                            <th>Net</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-tbody"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="settings" class="app-section">
+            <h2 class="section-title">Configuration</h2>
+            
+            <div class="settings-grid">
+                <div class="card">
+                    <h3>Général</h3>
+                    <div class="form-group">
+                        <label for="settings-currency">Devise</label>
+                        <input type="text" id="settings-currency" value="FCFA">
+                    </div>
+                    <div class="form-group">
+                        <label for="settings-initial-balance">Capital de Départ</label>
+                        <input type="number" id="settings-initial-balance" value="20000" min="0">
+                    </div>
+                    <button id="save-general-settings" class="btn btn-primary">Sauvegarder</button>
+                </div>
+
+                <div class="card">
+                    <h3>Seuils de Détection</h3>
+                    <div class="form-group">
+                        <label for="threshold-min-bets">Nombre min. de paris</label>
+                        <input type="number" id="threshold-min-bets" value="5">
+                    </div>
+                    <div class="form-group">
+                        <label for="threshold-winrate-high">Seuil Faille 🟢 (%)</label>
+                        <input type="number" id="threshold-winrate-high" value="65">
+                    </div>
+                    <div class="form-group">
+                        <label for="threshold-winrate-mid">Seuil Surveillance 🟡 (%)</label>
+                        <input type="number" id="threshold-winrate-mid" value="50">
+                    </div>
+                    <button id="save-thresholds" class="btn btn-primary">Appliquer</button>
+                </div>
+
+                <div class="card">
+                    <h3>Championnats disponibles</h3>
+                    <div class="form-inline">
+                        <input type="text" id="new-league-name" placeholder="Ex: FC26 Ligue 1">
+                        <button id="btn-add-league" class="btn btn-primary"><i class="fa-solid fa-plus"></i></button>
+                    </div>
+                    <ul class="settings-list" id="leagues-list"></ul>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
